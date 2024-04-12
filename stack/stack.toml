@@ -15,9 +15,17 @@ platforms = ["linux/amd64", "linux/arm64"]
     architecture = "amd64"
 
     sources = """
-    deb http://archive.ubuntu.com/ubuntu noble main universe multiverse
-    deb http://archive.ubuntu.com/ubuntu noble-updates main universe multiverse
-    deb http://archive.ubuntu.com/ubuntu noble-security main universe multiverse
+Types: deb
+URIs: http://archive.ubuntu.com/ubuntu/
+Suites: noble noble-updates
+Components: main universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+
+Types: deb
+URIs: http://security.ubuntu.com/ubuntu/
+Suites: noble-security
+Components: main universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
     """
 
     packages = """\
@@ -28,7 +36,7 @@ platforms = ["linux/amd64", "linux/arm64"]
     jq \
     libexpat1 \
     libgmp-dev \
-    libssl3 \
+    libssl3t64 \
     libssl-dev \
     libyaml-0-2 \
     netbase \
@@ -43,9 +51,10 @@ platforms = ["linux/amd64", "linux/arm64"]
     architecture = "arm64"
 
     sources = """
-    deb http://ports.ubuntu.com/ubuntu-ports/ noble main universe multiverse
-    deb http://ports.ubuntu.com/ubuntu-ports/ noble-updates main universe multiverse
-    deb http://ports.ubuntu.com/ubuntu-ports/ noble-security main universe multiverse
+Types: deb
+URIs: http://ports.ubuntu.com/ubuntu-ports/
+Suites: noble noble-updates noble-security
+Components: main universe multiverse
     """
 
 [run]
@@ -59,15 +68,23 @@ platforms = ["linux/amd64", "linux/arm64"]
     architecture = "amd64"
 
     sources = """
-    deb http://archive.ubuntu.com/ubuntu noble main universe multiverse
-    deb http://archive.ubuntu.com/ubuntu noble-updates main universe multiverse
-    deb http://archive.ubuntu.com/ubuntu noble-security main universe multiverse
+Types: deb
+URIs: http://archive.ubuntu.com/ubuntu/
+Suites: noble noble-updates
+Components: main universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+
+Types: deb
+URIs: http://security.ubuntu.com/ubuntu/
+Suites: noble-security
+Components: main universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
     """
 
     packages = """\
     ca-certificates \
     libexpat1 \
-    libssl3 \
+    libssl3t64 \
     libyaml-0-2 \
     netbase \
     openssl \
@@ -79,7 +96,8 @@ platforms = ["linux/amd64", "linux/arm64"]
     architecture = "arm64"
 
     sources = """
-    deb http://ports.ubuntu.com/ubuntu-ports/ noble main universe multiverse
-    deb http://ports.ubuntu.com/ubuntu-ports/ noble-updates main universe multiverse
-    deb http://ports.ubuntu.com/ubuntu-ports/ noble-security main universe multiverse
+Types: deb
+URIs: http://ports.ubuntu.com/ubuntu-ports/
+Suites: noble noble-updates noble-security
+Components: main universe multiverse
     """

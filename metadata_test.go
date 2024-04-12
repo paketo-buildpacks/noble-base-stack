@@ -12,8 +12,7 @@ import (
 	"github.com/paketo-buildpacks/packit/v2/vacation"
 	"github.com/sclevine/spec"
 
-	. "github.com/paketo-buildpacks/jam/integration/matchers"
-	. "github.com/paketo-buildpacks/packit/v2/matchers"
+	. "github.com/paketo-buildpacks/occam/matchers"
 )
 
 func testMetadata(t *testing.T, context spec.G, it spec.S) {
@@ -116,7 +115,7 @@ func testMetadata(t *testing.T, context spec.G, it spec.S) {
 				ContainSubstring("Package: jq"),
 				ContainSubstring("Package: libexpat1"),
 				ContainSubstring("Package: libgmp-dev"),
-				ContainSubstring("Package: libssl3"),
+				ContainSubstring("Package: libssl3t64"),
 				ContainSubstring("Package: libyaml-0-2"),
 				ContainSubstring("Package: netbase"),
 				ContainSubstring("Package: openssl"),
@@ -201,7 +200,7 @@ func testMetadata(t *testing.T, context spec.G, it spec.S) {
 				ContainSubstring("Package: ca-certificates"),
 				ContainSubstring("Package: libc6"),
 				ContainSubstring("Package: libexpat1"),
-				ContainSubstring("Package: libssl3"),
+				ContainSubstring("Package: libssl3t64"),
 				ContainSubstring("Package: libyaml-0-2"),
 				ContainSubstring("Package: netbase"),
 				ContainSubstring("Package: openssl"),

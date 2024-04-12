@@ -4,7 +4,7 @@ ARG sources
 ARG packages
 ARG package_args='--no-install-recommends'
 
-RUN echo "$sources" > /etc/apt/sources.list && \
+RUN echo "$sources" > /etc/apt/sources.list.d/ubuntu.sources && \
   echo "Package: $packages\nPin: release c=multiverse\nPin-Priority: -1\n\nPackage: $packages\nPin: release c=restricted\nPin-Priority: -1\n" > /etc/apt/preferences && \
   echo "debconf debconf/frontend select noninteractive" | debconf-set-selections && \ 
   export DEBIAN_FRONTEND=noninteractive && \
