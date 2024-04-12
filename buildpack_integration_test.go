@@ -24,7 +24,7 @@ import (
 	"github.com/paketo-buildpacks/packit/v2/vacation"
 )
 
-const REGISTRY_IMAGE = "registry:2"
+const RegistryName = "registry:2"
 
 func testBuildpackIntegration(t *testing.T, context spec.G, it spec.S) {
 	var (
@@ -57,33 +57,16 @@ func testBuildpackIntegration(t *testing.T, context spec.G, it spec.S) {
 
 		registry, err = docker.Container.Run.
 			WithPublish(fmt.Sprintf("%d:5000", localRegistryPort)).
-			Execute(REGISTRY_IMAGE)
+			Execute(RegistryName)
 		Expect(err).NotTo(HaveOccurred())
 
 		name, err = occam.RandomName()
 		Expect(err).NotTo(HaveOccurred())
 
-		buildpackStore := occam.NewBuildpackStore()
-
-		mavenBuildpack, err = buildpackStore.Get.
-			WithVersion("6.15.13").
-			Execute("github.com/paketo-buildpacks/maven")
-		Expect(err).NotTo(HaveOccurred())
-
-		jvmBuildpack, err = buildpackStore.Get.
-			WithVersion("10.3.7").
-			Execute("github.com/paketo-buildpacks/sap-machine")
-		Expect(err).NotTo(HaveOccurred())
-
-		syftBuildpack, err = buildpackStore.Get.
-			WithVersion("1.45.1").
-			Execute("github.com/paketo-buildpacks/syft")
-		Expect(err).NotTo(HaveOccurred())
-
-		executableJarBuildpack, err = buildpackStore.Get.
-			WithVersion("6.8.4").
-			Execute("github.com/paketo-buildpacks/executable-jar")
-		Expect(err).NotTo(HaveOccurred())
+		mavenBuildpack = "gcr.io/paketo-buildpacks/maven"
+		jvmBuildpack = "gcr.io/paketo-buildpacks/sap-machine"
+		syftBuildpack = "gcr.io/paketo-buildpacks/syft"
+		executableJarBuildpack = "gcr.io/paketo-buildpacks/executable-jar"
 
 		source, err = occam.Source(filepath.Join("integration", "testdata", "simple_app"))
 		Expect(err).NotTo(HaveOccurred())
@@ -125,7 +108,7 @@ func testBuildpackIntegration(t *testing.T, context spec.G, it spec.S) {
 
 		Expect(docker.Image.Remove.Execute(stack.BuildImageID)).To(Succeed())
 		Expect(docker.Image.Remove.Execute(stack.RunImageID)).To(Succeed())
-		Expect(docker.Image.Remove.Execute(REGISTRY_IMAGE)).To(Succeed())
+		Expect(docker.Image.Remove.Execute(RegistryName)).To(Succeed())
 
 		Expect(docker.Image.Remove.Execute(fmt.Sprintf("buildpacksio/lifecycle:%s", lifecycleVersion))).To(Succeed())
 
