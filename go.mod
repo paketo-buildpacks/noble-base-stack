@@ -2,6 +2,8 @@ module github.com/paketo-buildpacks/noble-base-stack
 
 go 1.21
 
+toolchain go1.22.4
+
 require (
 	github.com/google/go-containerregistry v0.19.1
 	github.com/google/uuid v1.6.0
