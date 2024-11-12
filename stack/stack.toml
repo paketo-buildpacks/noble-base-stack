@@ -2,7 +2,7 @@ id = "io.buildpacks.stacks.noble"
 homepage = "https://github.com/paketo-buildpacks/noble-base-stack"
 maintainer = "Paketo Buildpacks"
 
-platforms = ["linux/amd64", "linux/arm64"]
+platforms = ["linux/amd64"]
 
 [build]
   description = "ubuntu:noble with compilers and shell utilities"
