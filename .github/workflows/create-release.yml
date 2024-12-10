@@ -599,6 +599,11 @@ jobs:
         stacks: ${{ fromJSON(needs.preparation.outputs.stacks) }}
         arch: ${{ fromJSON(needs.preparation.outputs.architectures) }}
     steps:
+    - name: Checkout With History
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # gets full history
+
     - name: Download Current Receipt(s)
       uses: actions/download-artifact@v4
       with:
@@ -803,8 +808,8 @@ jobs:
 
         echo "run_image=${{ needs.preparation.outputs.repo_owner }}/${{ matrix.stacks.run_image }}-${{ needs.preparation.outputs.registry_repo_name }}:${{ steps.tag.outputs.tag }}" >> "$GITHUB_OUTPUT"
 
-    - name: Create Release Notes
-      id: notes
+    - name: Create Release Notes per Arch and per Stack
+      id: notes_arc_stack
       uses: paketo-buildpacks/github-config/actions/stack/release-notes@main
       with:
         build_image: ${{ steps.registry_names.outputs.build_image }}
@@ -821,7 +826,7 @@ jobs:
     - name: Release Notes File
       id: release-notes-file
       run: |
-        printf '%s\n' '${{ steps.notes.outputs.release_body }}' > "${{ matrix.arch.name }}-${{ matrix.stacks.name }}-release-notes.md"
+        printf '%s\n' '${{ steps.notes_arc_stack.outputs.release_body }}' > "${{ matrix.arch.name }}-${{ matrix.stacks.name }}-release-notes.md"
 
     - name: Upload ${{ matrix.arch.name }} release notes file for stack ${{ matrix.stacks.name }}
       uses: actions/upload-artifact@v4
@@ -896,7 +901,7 @@ jobs:
         run_modified=$(jq '. | length' <<< "${RUN_MODIFIED}")
         echo "Run packages modified: ${run_modified}"
 
-        if [ "${build_added}" -eq 0 ] && [ "${build_modified}" -eq 0 ] && [ "${run_added}" -eq 0 ] && [ "${run_modified}" -eq 0 ]; then
+        if [ "${build_added:-0}" -eq 0 ] && [ "${build_modified:-0}" -eq 0 ] && [ "${run_added}" -eq 0 ] && [ "${run_modified}" -eq 0 ]; then
           echo "No packages changed."
           # We ommit setting "packages_changed" variable to false, 
           # as there is an edge case scenario overriding any true value due to parallelization
@@ -1304,34 +1309,37 @@ jobs:
             ]' <<<"${assets}")"
         done
 
+        echo "assets=${assets}" >> "$GITHUB_OUTPUT"
+
+    - name: Generate Release Notes Description
+      id: notes
+      run: |
+
+        release_notes_dir="release-notes"
+
         # If there is only one architecture
-        # add this as a relase notes description
         archs_length=$(echo '${{ needs.preparation.outputs.architectures }}' | jq 'length')
         if [ $archs_length -eq 1 ]; then
           arch_name=$(echo '${{ needs.preparation.outputs.architectures }}' | jq -r '.[0].name')
           cat "${release_notes_dir}/${arch_name}-release-notes" > release_notes.md
+        else
+          echo "## Images" > release_notes.md
+          echo "" >> release_notes.md
+          stacks=$(echo '${{ needs.preparation.outputs.stacks }}' | jq -c -r '.[]')
+          for stack in $stacks; do
+            stack_name=$(echo "$stack" | jq -r '.name')
+            run_image=$(echo "$stack" | jq -r '.run_image')
+            build_image=$(echo "$stack" | jq -r '.build_image')
+            create_build_image=$(echo "$stack" | jq -r '.create_build_image // false')
+
+            if [ ${create_build_image} == true ]; then
+              echo "Build: \`${{ needs.preparation.outputs.repo_owner }}/${build_image}-${{ needs.preparation.outputs.registry_repo_name }}:${{ steps.tag.outputs.tag }}\`" >> release_notes.md
+            fi
+            echo "Run: \`${{ needs.preparation.outputs.repo_owner }}/${run_image}-${{ needs.preparation.outputs.registry_repo_name }}:${{ steps.tag.outputs.tag }}\`" >> release_notes.md
+          done
         fi
 
-        echo "assets=${assets}" >> "$GITHUB_OUTPUT"
-        echo "archs_length=${archs_length}" >> "$GITHUB_OUTPUT"
-
-    - name: Generate Release Notes Description
-      if: ${{ steps.assets.outputs.archs_length > 1 }}
-      run: |
-        echo "## Images" > release_notes.md
-        echo "" >> release_notes.md
-        stacks=$(echo '${{ needs.preparation.outputs.stacks }}' | jq -c -r '.[]')
-        for stack in $stacks; do
-          stack_name=$(echo "$stack" | jq -r '.name')
-          run_image=$(echo "$stack" | jq -r '.run_image')
-          build_image=$(echo "$stack" | jq -r '.build_image')
-          create_build_image=$(echo "$stack" | jq -r '.create_build_image // false')
-
-          if [ ${create_build_image} == true ]; then
-            echo "Build: \`${{ needs.preparation.outputs.repo_owner }}/${build_image}-${stack_name}:${{ steps.tag.outputs.tag }}\`" >> release_notes.md
-          fi
-          echo "Run: \`${{ needs.preparation.outputs.repo_owner }}/${run_image}-${stack_name}:${{ steps.tag.outputs.tag }}\`" >> release_notes.md
-        done
+        echo "release_body=release_notes.md" >> "$GITHUB_OUTPUT"
 
     - name: Create Release
       uses: paketo-buildpacks/github-config/actions/release/create@main
@@ -1341,14 +1349,14 @@ jobs:
         tag_name: v${{ steps.tag.outputs.tag }}
         target_commitish: ${{ github.sha }}
         name: v${{ steps.tag.outputs.tag }}
-        body_filepath: release_notes.md
+        body_filepath: ${{ steps.notes.outputs.release_body }}
         draft: false
         assets: ${{ steps.assets.outputs.assets }}
 
   failure:
     name: Alert on Failure
     runs-on: ubuntu-22.04
-    needs: [ preparation, poll_usns, poll_images, create_stack, stack_files_changed, diff, test, packages_changed, release ]
+    needs: [ preparation, poll_usns, poll_images, create_stack, diff, test, release, packages_changed, stack_files_changed ]
     if: ${{ always() && needs.preparation.result == 'failure' || needs.poll_images.result == 'failure' || needs.poll_usns.result == 'failure' || needs.create_stack.result == 'failure' || needs.diff.result == 'failure' || needs.test.result == 'failure' || needs.release.result == 'failure' || needs.packages_changed.result == 'failure' || needs.stack_files_changed.result == 'failure' }}
     steps:
     - name: File Failure Alert Issue
